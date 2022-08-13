@@ -19,6 +19,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": hemispheres(browser),
         "last_modified": dt.datetime.now()
     }
 
@@ -96,6 +97,54 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+def hemispheres (browser):
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    hemisphere_image_urls = []
+
+    #Convert to html
+    html = browser.html
+    mars_pics = soup(html, 'html.parser')
+    
+    try:
+        # Find the number of hemispheres
+        total_pics = len(mars_pics.select("div.item"))
+
+        # Loop through links
+        for i in range(total_pics):
+            # Create an empty dict to hold the elements
+            hemispheres = {}
+
+            # Find elements
+            image = mars_pics.select("div.description a")[i].get('href')
+
+            browser.visit(f'https://marshemispheres.com/{image}')
+
+            # New html for sample
+            html = browser.html
+            sample_image = soup(html, 'html.parser')
+
+            # Save url string
+            img_url = sample_image.select_one("div.downloads ul li a").get('href')
+
+            # Save image title
+            title = sample_image.select_one("h2.title").get_text()
+
+            # Add url and image to hemispheres dict
+            hemisphere_dict = {'img_url': url + img_url, 'title': title}
+
+            # Append to hemisphere dict
+            hemisphere_image_urls.append(hemisphere_dict)
+            
+            browser.back()
+            
+    except BaseException:
+        return None
+    
+    return hemisphere_image_urls
+
 
 if __name__ == "__main__":
 
